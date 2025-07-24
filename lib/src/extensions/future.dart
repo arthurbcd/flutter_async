@@ -43,17 +43,13 @@ extension AsyncFutureExtension<T> on Future<T> {
 }
 
 /// Signature for a function that creates a [SnackBar].
-typedef SnackBarBuilder = SnackBar Function(
-  BuildContext context,
-  String message,
-);
+typedef SnackBarBuilder =
+    SnackBar Function(BuildContext context, String message);
 
 extension AsyncSnackBar<T> on Future<T> {
   /// The default success snackbar to use on [showSnackBar].
   static SnackBarBuilder successBuilder = (context, message) {
-    return SnackBar(
-      content: Text(message),
-    );
+    return SnackBar(content: Text(message));
   };
 
   /// The default error snackbar to use on [showSnackBar].

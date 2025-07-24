@@ -20,7 +20,7 @@ import '../async_builder/async_builder.dart';
 /// [AsyncBuilder] widget.
 class AsyncKey<T> extends GlobalKey {
   /// Creates a new [AsyncKey] with the given [value].
-  AsyncKey(this.value) : super.constructor();
+  AsyncKey([this.value]) : super.constructor();
 
   /// The [value] of this key.
   ///

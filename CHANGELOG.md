@@ -2,6 +2,10 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.14.1 - Jul 24, 2025
+
+- Changed `AsyncKey.value` to be optional. 
+
 ## 0.14.0 - Jun 27, 2025
 
 - Bump sdk to ">=3.7.0 <4.0.0".
