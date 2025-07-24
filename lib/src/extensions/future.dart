@@ -23,14 +23,20 @@ extension AsyncFutureExtension<T> on Future<T> {
   /// Shows a loading dialog.
   Future<T> showLoading() async {
     BuildContext? popContext;
+    var didComplete = false;
 
-    showDialog<void>(
-      context: Async.context,
-      barrierDismissible: false,
-      builder: (context) => Async.loadingBuilder(popContext = context),
-    ).ignore();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (didComplete) return;
+
+      showDialog<void>(
+        context: Async.context,
+        barrierDismissible: false,
+        builder: (context) => Async.loadingBuilder(popContext = context),
+      ).ignore();
+    });
 
     return whenComplete(() {
+      didComplete = true;
       if (popContext != null) Navigator.pop(popContext!);
     });
   }

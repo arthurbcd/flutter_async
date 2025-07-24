@@ -27,6 +27,10 @@ class AsyncIndicator extends CircularProgressIndicator {
     super.semanticsLabel,
     super.semanticsValue,
     super.strokeCap,
+    super.constraints,
+    super.padding,
+    super.strokeWidth,
+    super.trackGap,
     this.child,
   });
 
@@ -50,10 +54,7 @@ class AsyncIndicator extends CircularProgressIndicator {
     );
 
     if (child == null) return linear;
-    return Stack(
-      alignment: Alignment.center,
-      children: [child, linear],
-    );
+    return Stack(alignment: Alignment.center, children: [child, linear]);
   }
 
   /// Whether to show the indicator.
@@ -135,6 +136,9 @@ class _AsyncIndicatorState extends State<AsyncIndicator> {
                     semanticsLabel: widget.semanticsLabel,
                     semanticsValue: widget.semanticsValue,
                     strokeCap: widget.strokeCap,
+                    constraints: widget.constraints,
+                    padding: widget.padding,
+                    trackGap: widget.trackGap,
                   ),
                 ),
               ),
@@ -147,13 +151,7 @@ class _AsyncIndicatorState extends State<AsyncIndicator> {
     var child = widget.child ?? loader;
 
     if (widget.child != null) {
-      child = Stack(
-        alignment: Alignment.center,
-        children: [
-          child,
-          loader,
-        ],
-      );
+      child = Stack(alignment: Alignment.center, children: [child, loader]);
     }
 
     return child;

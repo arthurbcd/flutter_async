@@ -8,7 +8,7 @@ export 'src/widgets/async/async.dart';
 // AsyncBuilder
 export 'src/widgets/async_builder/async_builder.dart';
 // AsyncButtonBuilder
-export 'src/widgets/async_button/async_button_builder.dart';
+export 'src/widgets/async_button/async_button.dart';
 export 'src/widgets/async_button/async_button_style_button.dart';
 export 'src/widgets/async_button/async_floating_action_button.dart';
 export 'src/widgets/async_button/async_icon_button.dart';

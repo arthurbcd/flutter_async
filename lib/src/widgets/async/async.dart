@@ -1,31 +1,28 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../configs/async_config.dart';
+import '../../../flutter_async.dart';
 import '../../utils/adaptive_theme.dart';
-import '../async_indicator/async_indicator.dart';
 
 /// A signature for the `AsyncBuilder` function.
 typedef DataBuilder<T> = Widget Function(BuildContext context, T data);
 
 /// A signature for the [Async.errorBuilder] function.
-typedef ErrorBuilder = Widget Function(
-  BuildContext context,
-  Object error,
-  StackTrace stackTrace,
-);
+typedef ErrorBuilder =
+    Widget Function(BuildContext context, Object error, StackTrace stackTrace);
 
 /// A signature for the [Async.loadingBuilder] function.
 typedef ThemeBuilder = ThemeData Function(BuildContext context);
 
+typedef AsyncButtonLogger =
+    void Function(AsyncButtonEvent event, AsyncButtonState state);
+
 /// Async scope for flutter_async.
 class Async extends StatelessWidget {
   /// Creates an [Async] widget.
-  const Async({
-    super.key,
-    required this.config,
-    required this.child,
-  });
+  const Async({super.key, required this.config, required this.child});
 
   /// The config to be providen below this [Async].
   final AsyncConfig config;
@@ -38,6 +35,29 @@ class Async extends StatelessWidget {
     final scope = context.dependOnInheritedWidgetOfExactType<_InheritedAsync>();
     return scope?.config ?? const AsyncConfig();
   }
+
+  /// The [GlobalKey] to use as the root [NavigatorState].
+  ///
+  /// ```dart
+  /// MaterialApp(
+  ///   navigatorKey: Async.navigatorKey,
+  /// )
+  /// ```
+  ///
+  /// If `go_router`:
+  /// ```dart
+  /// GoRouter(
+  ///   navigatorKey: Async.navigatorKey,
+  /// )
+  /// ```
+  ///
+  /// You can either use this or set your own [GlobalKey] here.
+  ///
+  /// The [GlobalKey.currentContext] will be used when showing dialogs or snackbars.:
+  /// - [AsyncFutureExtension.showLoading]
+  /// - [AsyncSnackBar.showSnackBar].
+  ///
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
   /// Adds a error translator to any [Async.message].
   ///
@@ -58,16 +78,31 @@ class Async extends StatelessWidget {
   ///
   static String message(Object? e) => translator(e);
 
+  /// The default logger for [AsyncButton] events.
+  ///
+  /// You can override this by setting [Async.buttonLogger].
+  static AsyncButtonLogger? buttonLogger = (
+    AsyncButtonEvent event,
+    AsyncButtonState state,
+  ) {
+    if (kDebugMode) {
+      var message = '${state.widget.tag ?? state.button} ${event.name}';
+      if (state.buttonText case final text?) {
+        message += ' "$text"';
+      }
+      log(
+        '$message ${state.snapshot.errorMessage ?? ''}',
+        name: 'Async.buttonLogger',
+      );
+    }
+  };
+
   /// The default logger for any error.
   ///
   /// You can override this by setting [Async.errorLogger].
-  static void Function(Object e, StackTrace s) errorLogger = (e, s) {
+  static void Function(Object e, StackTrace s)? errorLogger = (e, s) {
     if (kDebugMode) {
-      print(
-        'Error caught by [flutter_async]:\n'
-        '.message: ${Async.message(e)}\n'
-        '.toString(): $e\n',
-      );
+      log(Async.message(e), error: e, stackTrace: s, name: 'Async.errorLogger');
     }
   };
 
@@ -147,10 +182,7 @@ class Async extends StatelessWidget {
     final builder = of(context).scrollLoadingBuilder;
     if (builder != null) return builder(context);
 
-    return SizedBox(
-      height: 60,
-      child: Async.loadingBuilder(context),
-    );
+    return SizedBox(height: 60, child: Async.loadingBuilder(context));
   }
 
   /// Returns the default [ThemeData] for error state.
@@ -190,17 +222,19 @@ class Async extends StatelessWidget {
   }
 
   /// Shortcut to get the root [NavigatorState.context].
-  /// - Use this to show a dialog/snackbar on the root [Navigator] scope.
-  static BuildContext get context => WidgetsBinding.instance.navigator.context;
+  ///
+  /// We recommend setting [Async.navigatorKey] on your [MaterialApp] or router.
+  static BuildContext get context {
+    return navigatorKey.currentContext ??
+        // we'll try to find it, not recommended.
+        WidgetsBinding.instance.navigator.context;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
-        return _InheritedAsync(
-          config: config,
-          child: child,
-        );
+        return _InheritedAsync(config: config, child: child);
       },
     );
   }
@@ -215,10 +249,7 @@ extension on WidgetsBinding {
 }
 
 class _InheritedAsync extends InheritedWidget {
-  const _InheritedAsync({
-    required this.config,
-    required super.child,
-  });
+  const _InheritedAsync({required this.config, required super.child});
 
   /// The [AsyncConfig] of this [BuildContext].
   final AsyncConfig config;

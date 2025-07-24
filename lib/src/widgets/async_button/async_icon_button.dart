@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../configs/async_config.dart';
 import '../../extensions/element.dart';
 import '../async/async.dart';
-import 'async_button_builder.dart';
+import 'async_button.dart';
 
 /// Async version of [FloatingActionButton].
 class AsyncIconButton extends IconButton {
@@ -33,6 +33,8 @@ class AsyncIconButton extends IconButton {
     super.isSelected,
     super.selectedIcon,
     required super.icon,
+    super.onHover,
+    super.onLongPress,
   });
 
   /// Creates an async [IconButton.filled].
@@ -61,6 +63,8 @@ class AsyncIconButton extends IconButton {
     super.isSelected,
     super.selectedIcon,
     required super.icon,
+    super.onHover,
+    super.onLongPress,
   }) : super.filled();
 
   /// Creates an async [IconButton.filledTonal].
@@ -89,6 +93,8 @@ class AsyncIconButton extends IconButton {
     super.isSelected,
     super.selectedIcon,
     required super.icon,
+    super.onHover,
+    super.onLongPress,
   }) : super.filledTonal();
 
   /// Creates an async [IconButton.outlined].
@@ -117,6 +123,8 @@ class AsyncIconButton extends IconButton {
     super.isSelected,
     super.selectedIcon,
     required super.icon,
+    super.onHover,
+    super.onLongPress,
   }) : super.outlined();
 
   /// The config for this [AsyncIconButton].
@@ -170,8 +178,15 @@ extension AsyncIconButtonExtension on IconButton {
       builder: (variant) {
         if (variant == null) return this;
 
-        return AsyncButtonBuilder(
-          config: config ??
+        return AsyncButton(
+          tag: switch (variant) {
+            _IconButtonVariant.standard => 'IconButton',
+            _IconButtonVariant.filled => 'IconButton.filled',
+            _IconButtonVariant.filledTonal => 'IconButton.filledTonal',
+            _IconButtonVariant.outlined => 'IconButton.outlined',
+          },
+          config:
+              config ??
               AsyncButtonConfig.icon(
                 successIcon: successIcon,
                 loadingIcon: loadingIcon,
@@ -197,6 +212,7 @@ extension AsyncIconButtonExtension on IconButton {
               ),
           configurator: (context) => Async.of(context).iconButtonConfig,
           onPressed: onPressed,
+          onLongPress: onLongPress,
           child: icon,
           builder: (context, state, child) {
             final button = switch (variant) {
@@ -209,6 +225,7 @@ extension AsyncIconButtonExtension on IconButton {
             return button(
               // mods
               onPressed: state.onPressed,
+              onLongPress: state.onLongPress,
               icon: child,
 
               // props
@@ -233,6 +250,7 @@ extension AsyncIconButtonExtension on IconButton {
               style: style,
               isSelected: isSelected,
               selectedIcon: selectedIcon,
+              onHover: onHover,
             );
           },
         );

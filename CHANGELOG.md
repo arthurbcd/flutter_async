@@ -2,6 +2,20 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.14.0 - Jun 27, 2025
+
+- Bump sdk to ">=3.7.0 <4.0.0".
+- Added `Async.buttonLogger` for logging button events.
+- Added `AsyncButton.tag` for logging.
+- Added `AsyncButtonIcon.onHover` and `AsyncButtonIcon.onLongPress`.
+- Added `AsyncTextButton.isSemanticButton`.
+- Added `AsyncIndicator` constraints, padding, strokeWidth and trackGap.
+- Added `AsyncKey`, a `GlobalKey` to access the current `AsyncButton` or `AsyncBuilder` state.
+- Added `Async.navigatorKey` for a predictable `Async.context`.
+- Changed `AsyncButton.press/longPress` returns it's `Future`.
+- Ensure `Future.showLoading` is called after build.
+- Breaking: `AsyncBuilder` now requires a function, as it's the default/proposed behavior. For a single future/stream value, use `AsyncBuilder.value`.
+
 ## 0.13.0 - Mar 04, 2025
 
 - Added [AsyncSnackBar] future extension & static customizations.

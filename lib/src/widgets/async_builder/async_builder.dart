@@ -9,12 +9,15 @@ import '../async/async.dart';
 /// A [Widget] that listens to [Future] and [Stream] events.
 @immutable
 class AsyncBuilder<T> extends StatefulWidget {
-  /// Creates an [AsyncBuilder] with [future] or [stream].
+  /// Creates an [AsyncBuilder] with [future] or [stream] as functions.
+  ///
+  /// This constructor is useful when you want to cache & reload [future] and [stream]
+  /// callbacks, persisting state. Add [interval] to reload them periodically.
   const AsyncBuilder({
     super.key,
-    this.snapshot,
     this.initialData,
     this.onData,
+    this.interval,
     this.future,
     this.stream,
     this.alignment = Alignment.center,
@@ -24,25 +27,25 @@ class AsyncBuilder<T> extends StatefulWidget {
     this.reloadingBuilder = _reloadingBuilder,
     this.skipReloading = false,
     required this.builder,
-  })  : assert(
-          future == null || stream == null,
-          'Cannot set both future and stream',
-        ),
-        streamFn = null,
-        futureFn = null,
-        interval = null;
+  }) : assert(
+         future == null || stream == null,
+         'cannot set both future and stream',
+       ),
+       snapshot = null,
+       futureValue = null,
+       streamValue = null;
 
-  /// Creates an [AsyncBuilder] with [future] or [stream] as functions.
+  /// Creates an [AsyncBuilder] with [futureValue] or [streamValue].
   ///
-  /// This constructor is useful when you want to reload [future] and [stream]
-  /// callbacks. Add [interval] to reload them periodically.
-  const AsyncBuilder.function({
+  /// This constructor is useful when you want to manage a single [Future] or [Stream]
+  /// without caching or reloading. It's state must be stored elsewhere.
+  const AsyncBuilder.value({
     super.key,
+    this.snapshot,
     this.initialData,
     this.onData,
-    this.interval,
-    Future<T> Function()? future,
-    Stream<T> Function()? stream,
+    Future<T>? future,
+    Stream<T>? stream,
     this.alignment = Alignment.center,
     this.noneBuilder = _noneBuilder,
     this.errorBuilder = _errorBuilder,
@@ -50,15 +53,15 @@ class AsyncBuilder<T> extends StatefulWidget {
     this.reloadingBuilder = _reloadingBuilder,
     this.skipReloading = false,
     required this.builder,
-  })  : assert(
-          future == null || stream == null,
-          'cannot set both future and stream',
-        ),
-        futureFn = future,
-        streamFn = stream,
-        snapshot = null,
-        future = null,
-        stream = null;
+  }) : assert(
+         future == null || stream == null,
+         'Cannot set both future and stream',
+       ),
+       futureValue = future,
+       streamValue = stream,
+       stream = null,
+       future = null,
+       interval = null;
 
   /// Creates an paged [AsyncBuilder] with [future] function.
   ///
@@ -140,16 +143,16 @@ class AsyncBuilder<T> extends StatefulWidget {
   final ValueChanged<T>? onData;
 
   /// The [Future] to listen.
-  final Future<T>? future;
+  final Future<T>? futureValue;
 
   /// The [Future] function to load and listen.
-  final Future<T> Function()? futureFn;
+  final Future<T> Function()? future;
 
   /// The [Stream] to listen.
-  final Stream<T>? stream;
+  final Stream<T>? streamValue;
 
   /// The [Stream] function to load and listen.
-  final Stream<T> Function()? streamFn;
+  final Stream<T> Function()? stream;
 
   /// The interval to reload `future/stream` callbacks.
   final Duration? interval;
@@ -196,11 +199,11 @@ class AsyncBuilderState<T> extends AsyncState<AsyncBuilder<T>, T> {
   @override
   void initState() {
     // `AsyncBuilder`
-    if (widget.future != null) async.future = widget.future;
-    if (widget.stream != null) async.stream = widget.stream;
+    if (widget.futureValue != null) async.future = widget.futureValue;
+    if (widget.streamValue != null) async.stream = widget.streamValue;
 
     // `AsyncBuilder.function`
-    if (widget.futureFn != null || widget.streamFn != null) {
+    if (widget.future != null || widget.stream != null) {
       reload();
       _setInterval(widget.interval);
     }
@@ -208,15 +211,15 @@ class AsyncBuilderState<T> extends AsyncState<AsyncBuilder<T>, T> {
     super.initState();
   }
 
-  /// Reloads `future` or `stream` function of an [AsyncBuilder.function].
+  /// Reloads `future` or `stream` function of an [AsyncBuilder].
   void reload() {
     assert(
-      widget.futureFn != null || widget.streamFn != null,
+      widget.future != null || widget.stream != null,
       'Tried to reload an `AsyncBuilder` without functions. In order to use '
       '`reload()`, you must use `AsyncBuilder.function` constructor.',
     );
-    if (widget.futureFn != null) async.future = widget.futureFn!();
-    if (widget.streamFn != null) async.stream = widget.streamFn!();
+    if (widget.future != null) async.future = widget.future!();
+    if (widget.stream != null) async.stream = widget.stream!();
   }
 
   void _setInterval(Duration? interval) {
@@ -229,16 +232,19 @@ class AsyncBuilderState<T> extends AsyncState<AsyncBuilder<T>, T> {
   @override
   void onSnapshot(AsyncSnapshot<T> snapshot) {
     snapshot.whenOrNull(data: widget.onData);
+    super.onSnapshot(snapshot);
   }
 
   @override
   void didUpdateWidget(covariant AsyncBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.future != oldWidget.future && widget.future != null) {
-      async.future = widget.future;
+    if (widget.futureValue != oldWidget.futureValue &&
+        widget.futureValue != null) {
+      async.future = widget.futureValue;
     }
-    if (widget.stream != oldWidget.stream && widget.stream != null) {
-      async.stream = widget.stream;
+    if (widget.streamValue != oldWidget.streamValue &&
+        widget.streamValue != null) {
+      async.stream = widget.streamValue;
     }
     if (widget.interval != oldWidget.interval) _setInterval(widget.interval);
   }
@@ -285,11 +291,12 @@ class AsyncBuilderState<T> extends AsyncState<AsyncBuilder<T>, T> {
 /// Signature to build the paged list of data.
 ///
 /// You must attach this [ScrollController] for pagination.
-typedef AsyncPagedBuilder<T> = Widget Function(
-  BuildContext context,
-  ScrollController controller,
-  List<T> data,
-);
+typedef AsyncPagedBuilder<T> =
+    Widget Function(
+      BuildContext context,
+      ScrollController controller,
+      List<T> data,
+    );
 
 class _AsyncPagedBuilder<T> extends StatefulWidget {
   const _AsyncPagedBuilder({
@@ -346,7 +353,7 @@ class _AsyncPagedBuilderState<T> extends State<_AsyncPagedBuilder<T>> {
         if (list.isEmpty) isLastPage = true;
         _results.addAll(list);
       } catch (e, s) {
-        Async.errorLogger(e, s);
+        Async.errorLogger?.call(e, s);
       }
 
       setState(() => isScrollLoading = false);
@@ -355,7 +362,7 @@ class _AsyncPagedBuilderState<T> extends State<_AsyncPagedBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return AsyncBuilder.function(
+    return AsyncBuilder(
       future: () async {
         final data = await widget.future(page = widget.initialPage);
         _results.clear();

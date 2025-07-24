@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../configs/async_config.dart';
 import '../async/async.dart';
-import 'async_button_builder.dart';
+import 'async_button.dart';
 
 /// Async version of [ElevatedButton].
 class AsyncElevatedButton extends ElevatedButton with _AsyncMixin {
@@ -38,14 +38,15 @@ class AsyncElevatedButton extends ElevatedButton with _AsyncMixin {
     required Widget icon,
     required Widget label,
   }) : super(
-          autofocus: autofocus ?? false,
-          clipBehavior: clipBehavior ?? Clip.none,
-          child: ElevatedButton.icon(
-            onPressed: onPressed,
-            icon: icon,
-            label: label,
-          ).child,
-        );
+         autofocus: autofocus ?? false,
+         clipBehavior: clipBehavior ?? Clip.none,
+         child:
+             ElevatedButton.icon(
+               onPressed: onPressed,
+               icon: icon,
+               label: label,
+             ).child,
+       );
 
   @override
   final AsyncButtonConfig config;
@@ -85,14 +86,15 @@ class AsyncOutlinedButton extends OutlinedButton with _AsyncMixin {
     required Widget icon,
     required Widget label,
   }) : super(
-          autofocus: autofocus ?? false,
-          clipBehavior: clipBehavior ?? Clip.none,
-          child: OutlinedButton.icon(
-            onPressed: onPressed,
-            icon: icon,
-            label: label,
-          ).child,
-        );
+         autofocus: autofocus ?? false,
+         clipBehavior: clipBehavior ?? Clip.none,
+         child:
+             OutlinedButton.icon(
+               onPressed: onPressed,
+               icon: icon,
+               label: label,
+             ).child,
+       );
 
   @override
   final AsyncButtonConfig config;
@@ -114,6 +116,7 @@ class AsyncTextButton extends TextButton with _AsyncMixin {
     super.clipBehavior,
     super.statesController,
     required super.child,
+    super.isSemanticButton = true,
   });
 
   /// Creates an async version of [TextButton.icon].
@@ -131,15 +134,17 @@ class AsyncTextButton extends TextButton with _AsyncMixin {
     super.statesController,
     required Widget icon,
     required Widget label,
+    super.isSemanticButton = true,
   }) : super(
-          autofocus: autofocus ?? false,
-          clipBehavior: clipBehavior ?? Clip.none,
-          child: TextButton.icon(
-            onPressed: onPressed,
-            icon: icon,
-            label: label,
-          ).child!,
-        );
+         autofocus: autofocus ?? false,
+         clipBehavior: clipBehavior ?? Clip.none,
+         child:
+             TextButton.icon(
+               onPressed: onPressed,
+               icon: icon,
+               label: label,
+             ).child!,
+       );
 
   @override
   final AsyncButtonConfig config;
@@ -195,14 +200,15 @@ class AsyncFilledButton extends FilledButton with _AsyncMixin {
     required Widget icon,
     required Widget label,
   }) : super(
-          autofocus: autofocus ?? false,
-          clipBehavior: clipBehavior ?? Clip.none,
-          child: FilledButton.icon(
-            onPressed: onPressed,
-            icon: icon,
-            label: label,
-          ).child,
-        );
+         autofocus: autofocus ?? false,
+         clipBehavior: clipBehavior ?? Clip.none,
+         child:
+             FilledButton.icon(
+               onPressed: onPressed,
+               icon: icon,
+               label: label,
+             ).child,
+       );
 
   /// Creates an async version of [FilledButton.tonalIcon].
   AsyncFilledButton.tonalIcon({
@@ -220,15 +226,16 @@ class AsyncFilledButton extends FilledButton with _AsyncMixin {
     required Widget icon,
     required Widget label,
   }) : super.tonal(
-          // same variant as FilledButton.tonal
-          autofocus: autofocus ?? false,
-          clipBehavior: clipBehavior ?? Clip.none,
-          child: FilledButton.tonalIcon(
-            onPressed: onPressed,
-            icon: icon,
-            label: label,
-          ).child,
-        );
+         // same variant as FilledButton.tonal
+         autofocus: autofocus ?? false,
+         clipBehavior: clipBehavior ?? Clip.none,
+         child:
+             FilledButton.tonalIcon(
+               onPressed: onPressed,
+               icon: icon,
+               label: label,
+             ).child,
+       );
 
   @override
   final AsyncButtonConfig config;
@@ -280,69 +287,104 @@ extension AsyncButtonExtension on ButtonStyleButton {
     Duration? styleDuration,
     Curve? styleCurve,
   }) {
-    return AsyncButtonBuilder(
-      config: config ??
-          AsyncButtonConfig.icon(
-            successIcon: successIcon,
-            loadingIcon: loadingIcon,
-            errorIcon: errorIcon,
-            successColor: successColor,
-            loadingColor: loadingColor,
-            errorColor: errorColor,
-          ).copyWith(
-            successBuilder: successBuilder,
-            loadingBuilder: loadingBuilder,
-            errorBuilder: errorBuilder,
-            keepHeight: keepHeight,
-            keepWidth: keepWidth,
-            animateSize: animateSize,
-            animatedSizeConfig: animatedSizeConfig,
-            errorDuration: errorDuration,
-            successDuration: successDuration,
-            styleDuration: styleDuration,
-            styleCurve: styleCurve,
-            errorTheme: errorTheme,
-            loadingTheme: loadingTheme,
-            successTheme: successTheme,
-          ),
-      configurator: (context) {
-        final config = Async.of(context);
-        if (this is TextButton) return config.textButtonConfig;
-        if (this is OutlinedButton) return config.outlinedButtonConfig;
-        if (this is ElevatedButton) return config.elevatedButtonConfig;
-        if (this is FilledButton) return config.filledButtonConfig;
-        return null;
-      },
-      onPressed: onPressed,
-      onLongPress: onLongPress,
-      child: child ?? const Text(''),
-      builder: (context, state, child) {
-        final button = () {
-          if (this is TextButton) return TextButton.new;
-          if (this is OutlinedButton) return OutlinedButton.new;
-          if (this is ElevatedButton) return ElevatedButton.new;
-          if (this is FilledButton) {
-            if (isTonal(context)) return FilledButton.tonal;
-            return FilledButton.new;
-          }
-          throw UnimplementedError('Unknown ButtonStyleButton');
-        }();
+    return Builder(
+      builder: (context) {
+        var tag = switch (this) {
+          TextButton() => 'TextButton',
+          OutlinedButton() => 'OutlinedButton',
+          ElevatedButton() => 'ElevatedButton',
+          FilledButton() when isTonal(context) => 'FilledButton.tonal',
+          FilledButton() => 'FilledButton',
+          _ => throw UnimplementedError('Unknown ButtonStyleButton'),
+        };
+        if (runtimeType.toString().endsWith('Icon')) {
+          tag.contains('.') ? tag += 'Icon' : tag += '.icon';
+        }
+        return AsyncButton(
+          tag: tag,
+          config:
+              config ??
+              AsyncButtonConfig.icon(
+                successIcon: successIcon,
+                loadingIcon: loadingIcon,
+                errorIcon: errorIcon,
+                successColor: successColor,
+                loadingColor: loadingColor,
+                errorColor: errorColor,
+              ).copyWith(
+                successBuilder: successBuilder,
+                loadingBuilder: loadingBuilder,
+                errorBuilder: errorBuilder,
+                keepHeight: keepHeight,
+                keepWidth: keepWidth,
+                animateSize: animateSize,
+                animatedSizeConfig: animatedSizeConfig,
+                errorDuration: errorDuration,
+                successDuration: successDuration,
+                styleDuration: styleDuration,
+                styleCurve: styleCurve,
+                errorTheme: errorTheme,
+                loadingTheme: loadingTheme,
+                successTheme: successTheme,
+              ),
+          configurator: (context) {
+            final config = Async.of(context);
+            if (this is TextButton) return config.textButtonConfig;
+            if (this is OutlinedButton) return config.outlinedButtonConfig;
+            if (this is ElevatedButton) return config.elevatedButtonConfig;
+            if (this is FilledButton) return config.filledButtonConfig;
+            return null;
+          },
+          onPressed: onPressed,
+          onLongPress: onLongPress,
+          child: child ?? const Text(''),
+          builder: (context, state, child) {
+            final button = switch (this) {
+              TextButton() => TextButton.new,
+              OutlinedButton() => OutlinedButton.new,
+              ElevatedButton() => ElevatedButton.new,
+              FilledButton() =>
+                isTonal(context) ? FilledButton.tonal : FilledButton.new,
+              _ => throw UnimplementedError('Unknown ButtonStyleButton'),
+            };
 
-        return button(
-          // mods
-          onPressed: state.onPressed,
-          onLongPress: state.onLongPress,
+            if (this is TextButton) {
+              return TextButton(
+                // mods
+                onPressed: state.onPressed,
+                onLongPress: state.onLongPress,
 
-          // props
-          key: key,
-          style: style,
-          onHover: onHover,
-          onFocusChange: onFocusChange,
-          focusNode: focusNode,
-          autofocus: autofocus,
-          clipBehavior: clipBehavior ?? Clip.hardEdge,
-          statesController: statesController,
-          child: child,
+                // props
+                key: key,
+                style: style,
+                onHover: onHover,
+                onFocusChange: onFocusChange,
+                focusNode: focusNode,
+                autofocus: autofocus,
+                clipBehavior: clipBehavior ?? Clip.hardEdge,
+                statesController: statesController,
+                isSemanticButton: isSemanticButton,
+                child: child,
+              );
+            }
+
+            return button(
+              // mods
+              onPressed: state.onPressed,
+              onLongPress: state.onLongPress,
+
+              // props
+              key: key,
+              style: style,
+              onHover: onHover,
+              onFocusChange: onFocusChange,
+              focusNode: focusNode,
+              autofocus: autofocus,
+              clipBehavior: clipBehavior ?? Clip.hardEdge,
+              statesController: statesController,
+              child: child,
+            );
+          },
         );
       },
     );

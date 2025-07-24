@@ -49,25 +49,32 @@ final todos = await getTodos().showSnackBar(
 
 > This is possible thanks to `Async.context`, which defaults to the root `NavigatorState.context` of the app. If needed, you can provide a custom context by calling `showSnackBar(context: myContext)`.
 
-You can customize the default loading using `Async` widget with your `AsyncConfig`.
+We recommend setting `Async.navigatorKey` on your `MaterialApp` or router to ensure a predictable context:
 
-You can customize the [SnackBar] shown, using:
+```dart
+MaterialApp(
+  navigatorKey: Async.navigatorKey, // <- set the navigator key
+);
+```
+
+Customize the default loading, using `Async` widget with your `AsyncConfig`.
+
+For customizing the [SnackBar] shown, set:
 - `AsyncSnackBar.errorBuilder`
 - `AsyncSnackBar.successBuilder`
 - `AsyncSnackBar.animationStyle`
 
-Tip: It's highly recommended to simply modify you [ThemeData.snackBarTheme] instead.
+Tip: It's highly recommended to simply modify your [ThemeData.snackBarTheme] instead.
 
 ## AsyncBuilder
 
-AsyncBuilder is a powerful widget that simplifies handling of Future and Stream objects in Flutter. You don't have to define any builder. flutter_async defaults them to the `AsyncConfig`.
+AsyncBuilder is a powerful widget that simplifies handling of Future and Stream objects in Flutter. You don't have to define any builder.
 
 Here are the properties of AsyncBuilder:
 
 ```dart
  AsyncBuilder(
-   // snapshot: // <- to direcly resolve a snapshot
-   future: myFuture, // or stream
+   future: () async => await myFutureFunction(), // or stream
    noneBuilder: (context) {
     // shown when operation is not yet started. Ex: future and stream are null
     // or completed without any error or data. Ex: Stream.empty()
@@ -85,20 +92,6 @@ Here are the properties of AsyncBuilder:
      return Text('$error');
    },
    builder: (context, data) {
-     return Text('$data');
-   },
- ),
-```
-
-Use `function` constructor for handling async functions:
-
-This is usefeul for simple usecases with contained state management. If you are handling state in a separate class, better keep using the default constructor of `AsyncBuilder`.
-
-```dart
- AsyncBuilder.function(
-   future: () => myFutureFunction(), // or stream
-   interval: Duration(seconds: 5), // auto reload
-   builder: (context, data) {
      return TextButton(
       child: Text('$data')
       onPressed: () => AsyncBuilder.of(context).reload(); // manual reload
@@ -107,7 +100,23 @@ This is usefeul for simple usecases with contained state management. If you are 
  ),
 ```
 
-Use `paged` constructor for handling pagination:
+Use `AsyncBuilder.value` constructor for handling async functions that are created elsewhere, or for single future/stream values without caching or reloading:
+
+You cannot use `AsyncBuilder.of(context).reload()` with this constructor, as the future/stream was not created by the `AsyncBuilder` itself.
+
+```dart
+ AsyncBuilder.value(
+   future: myFutureValue, // or stream
+   interval: Duration(seconds: 5), // auto reload
+   builder: (context, data) {
+     return TextButton(
+      child: Text('$data'),
+    );
+   },
+ ),
+```
+
+Use `paged` constructor for handling & cached pagination:
 
 ```dart
 AsyncBuilder.paged(
@@ -127,6 +136,40 @@ AsyncBuilder.paged(
 )
 ```
 
+## AsyncKey
+
+AsyncKey is a `GlobalKey` that can be used to access the current state of an `AsyncBuilder` or `AsyncButton`. This is useful for reloading or pressing the button programmatically.
+
+Store your key state in a variable:
+
+```dart
+final builderKey = AsyncKey();
+final buttonKey = AsyncKey();
+```
+
+Attach the key to your `Async` widgets:
+
+```dart
+AsyncBuilder(
+  key: builderKey, // <- attach the key
+  future: () async => await myFutureFunction(),
+  ...
+);
+ElevatedButton(
+  key: buttonKey,
+  onPressed: () {
+    // reloads the AsyncBuilder
+    builderKey.currentBuilder?.reload();
+  },
+).asAsync(),
+ElevatedButton(
+  onPressed: () {
+    // presses the button above, which reloads the AsyncBuilder
+    buttonKey.currentButton?.press();
+  },
+).asAsync(),
+```
+
 ## Customization
 
 - Optional, but you can use [Async] config scope. This allows you to configure or override the default behavior of flutter_async. Works the same way as [Theme] widget for theming.
@@ -142,6 +185,13 @@ AsyncBuilder.paged(
       child: // your scope.
     )
 ```
+
+## Logging:
+
+- `Async.buttonLogger` for all button events.
+- `Async.errorLogger` for all errors.
+
+You can turn off logging by setting these to `null`.
 
 ## Future Plans and Development
 

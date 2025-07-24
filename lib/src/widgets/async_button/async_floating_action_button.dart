@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../configs/async_config.dart';
 import '../async/async.dart';
-import 'async_button_builder.dart';
+import 'async_button.dart';
 
 /// Async version of [FloatingActionButton].
 class AsyncFloatingActionButton extends FloatingActionButton {
@@ -35,8 +35,8 @@ class AsyncFloatingActionButton extends FloatingActionButton {
     super.isExtended,
     super.enableFeedback,
     super.child,
-  })  : _type = _FloatingActionButtonType.regular,
-        _label = null;
+  }) : _type = _FloatingActionButtonType.regular,
+       _label = null;
 
   /// Creates an async [FloatingActionButton.small].
   const AsyncFloatingActionButton.small({
@@ -63,9 +63,9 @@ class AsyncFloatingActionButton extends FloatingActionButton {
     super.materialTapTargetSize,
     super.enableFeedback,
     super.child,
-  })  : _type = _FloatingActionButtonType.small,
-        _label = null,
-        super.small();
+  }) : _type = _FloatingActionButtonType.small,
+       _label = null,
+       super.small();
 
   /// Creates an async [FloatingActionButton.large].
   const AsyncFloatingActionButton.large({
@@ -92,9 +92,9 @@ class AsyncFloatingActionButton extends FloatingActionButton {
     super.materialTapTargetSize,
     super.enableFeedback,
     super.child,
-  })  : _type = _FloatingActionButtonType.large,
-        _label = null,
-        super.large();
+  }) : _type = _FloatingActionButtonType.large,
+       _label = null,
+       super.large();
 
   /// Creates an async [FloatingActionButton.extended].
   const AsyncFloatingActionButton.extended({
@@ -126,9 +126,9 @@ class AsyncFloatingActionButton extends FloatingActionButton {
     super.extendedPadding,
     super.extendedTextStyle,
     super.enableFeedback,
-  })  : _type = _FloatingActionButtonType.extended,
-        _label = label,
-        super.extended();
+  }) : _type = _FloatingActionButtonType.extended,
+       _label = label,
+       super.extended();
 
   /// The config for this [AsyncFloatingActionButton].
   final AsyncButtonConfig config;
@@ -184,8 +184,13 @@ extension AsyncFloatingActionButtonExtension on FloatingActionButton {
     return _FabVisitor(
       fab: this,
       builder: (fab) {
-        return AsyncButtonBuilder(
-          config: config ??
+        return AsyncButton(
+          tag: 'FloatingActionButton.${fab.type?.name}'.replaceFirst(
+            '.regular',
+            '',
+          ),
+          config:
+              config ??
               AsyncButtonConfig.icon(
                 successIcon: successIcon,
                 loadingIcon: loadingIcon,
@@ -311,7 +316,8 @@ class _FabVisitorState extends State<_FabVisitor> {
   /// Replicates the extended fab layout as of [FloatingActionButton.build]
   Widget get resolvedChild {
     final child = widget.fab.child;
-    final spacing = widget.fab.extendedIconLabelSpacing ??
+    final spacing =
+        widget.fab.extendedIconLabelSpacing ??
         theme.extendedIconLabelSpacing ??
         8.0;
 
@@ -347,8 +353,9 @@ class _FabVisitorState extends State<_FabVisitor> {
       label = fab._label;
     } else {
       type = null;
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => context.visitChildElements(visit));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.visitChildElements(visit),
+      );
     }
   }
 
