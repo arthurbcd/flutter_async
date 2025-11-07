@@ -282,7 +282,7 @@ class _IconButtonVisitorState extends State<_IconButtonVisitor> {
       context.visit(
         onWidget: (widget) {
           if (widget is ButtonStyleButton) setVariant(widget);
-          return widget is ButtonStyleButton;
+          return widget is! ButtonStyleButton;
         },
       );
       if (mounted) setState(() {});

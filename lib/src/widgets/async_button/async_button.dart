@@ -176,15 +176,15 @@ class AsyncButtonState extends AsyncState<AsyncButton, void> {
                   includePlaceholders: false,
                 );
 
-            return true; // stop visiting
+            return false; // stop visiting
           }
           if (widget case Icon icon) {
             buttonText = icon.icon?.toString() ?? icon.semanticLabel;
 
-            return true; // stop visiting
+            return false; // stop visiting
           }
 
-          return false;
+          return true; // continue visiting
         },
       );
     });

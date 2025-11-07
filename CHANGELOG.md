@@ -2,13 +2,23 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.15.0 - Oct 15, 2025
+
+- Added `AsyncSnackBar.showSuccess`.
+- Added `AsyncSnackBar.showError`.
+- Changed `BuildContext.visit` to stop when `false`.
+- Improve `Async.context` assert/log messages.
+- Adds `debounceTime` and `throttleTime` extensions for future functions.
+- Add `'package:flutter_async/async_notifier.dart'` export.
+- Bump `async_notifier` to 0.6.0.
+
 ## 0.14.1 - Jul 24, 2025
 
-- Changed `AsyncKey.value` to be optional. 
+- Changed `AsyncKey.value` to be optional.
 
 ## 0.14.0 - Jun 27, 2025
 
-- Bump sdk to ">=3.7.0 <4.0.0".
+- Bump sdk to `>=3.7.0 <4.0.0`.
 - Added `Async.buttonLogger` for logging button events.
 - Added `AsyncButton.tag` for logging.
 - Added `AsyncButtonIcon.onHover` and `AsyncButtonIcon.onLongPress`.

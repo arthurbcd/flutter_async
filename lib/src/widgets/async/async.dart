@@ -243,8 +243,34 @@ class Async extends StatelessWidget {
 extension on WidgetsBinding {
   /// Returns the root [NavigatorState].
   NavigatorState get navigator {
+    NavigatorState? navigator;
+
     final context = focusManager.rootScope.descendants.first.context; // leaf
-    return Navigator.of(context!, rootNavigator: true);
+    if (context != null) {
+      navigator = Navigator.maybeOf(context, rootNavigator: true);
+      if (navigator != null) return navigator;
+    }
+
+    // fallback, not recommended
+    WidgetsBinding.instance.rootElement?.visit(
+      onState: (state) {
+        if (state is NavigatorState) {
+          navigator = state;
+        }
+        return navigator == null;
+      },
+    );
+
+    if (navigator != null) {
+      log(
+        name: 'flutter_async',
+        level: 900, // warning
+        'Warning: Using fallback to find NavigatorState. It is recommended to set Async.navigatorKey.',
+      );
+    }
+
+    assert(navigator != null, 'No Navigator found in the widget tree.');
+    return navigator!;
   }
 }
 
